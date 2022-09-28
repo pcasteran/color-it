@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/csv"
 	"fmt"
 	"os"
@@ -45,4 +46,33 @@ func readInputFile(filePath string) (*Board, error) {
 	}
 
 	return NewBoard(nbRows, nbRows /* nbCols=nbRows as the board is a square */, cells), nil
+}
+
+func serializeBoardToCsv(board *Board) (string, error) {
+	// Create a CSV writer on top of a byte buffer.
+	buffer := new(bytes.Buffer)
+	csvWriter := csv.NewWriter(buffer)
+
+	// Add a record to the writer for each row in the board.
+	for iRow := 0; iRow < board.nbRows; iRow++ {
+		// Create the row record.
+		record := make([]string, board.nbCols)
+		for iCol := 0; iCol < board.nbCols; iCol++ {
+			cellId := (iRow * board.nbCols) + iCol
+			color := board.cells[cellId]
+			record[iCol] = strconv.Itoa(color)
+		}
+
+		// Add it to the writer.
+		err := csvWriter.Write(record)
+		if err != nil {
+			return "", fmt.Errorf("unable to serialize the record as CSV: %w", err)
+		}
+	}
+
+	// Flush the writer and return the resulting CSV string.
+	csvWriter.Flush()
+	csvStr := buffer.String()
+
+	return csvStr, nil
 }

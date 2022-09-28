@@ -1,8 +1,5 @@
 package main
 
-// Empty struct (no memory usage) to use as the value for the cell maps as Go doesn't have a set data structure.
-type void struct{}
-
 type Board struct {
 	// Number of rows in the board.
 	nbRows int
@@ -79,7 +76,7 @@ func (board *Board) updateFrontier() {
 	cellsToProcess := board.frontierCells
 	board.frontierCells = make(map[int]void, len(cellsToProcess))
 
-	// Anonymous function processing one cell.
+	// Closure function processing one cell.
 	processCell := func(cellId int) {
 		_, alreadyCompleted := board.completedCells[cellId]
 		if !alreadyCompleted {
@@ -136,4 +133,19 @@ func (board *Board) updateFrontier() {
 			break
 		}
 	}
+}
+
+func (board *Board) updateCompletedArea(color int) {
+	// Update the color of all the cells in the completed area.
+	for cellId := range board.completedCells {
+		board.cells[cellId] = color
+	}
+
+	// Update the frontier.
+	board.updateFrontier()
+}
+
+// Returns whether the board is solved, i.e. no more cell needs to be processed.
+func (board *Board) isSolved() bool {
+	return len(board.frontierCells) == 0
 }
