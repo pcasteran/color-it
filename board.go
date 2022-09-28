@@ -34,7 +34,7 @@ func NewBoard(nbRows, nbCols int, cells map[int]int) *Board {
 
 	// Initialize the board with:
 	//   - a completed area consisting of only the top-left cell (ID = 0)
-	//   - a frontier consisting of:
+	//   - a temporary frontier consisting of:
 	//		- the cell immediately to the right (ID = 1)
 	//		- the cell immediately to the bottom (ID = nbCols)
 	board.completedCells[0] = void{}
@@ -42,10 +42,36 @@ func NewBoard(nbRows, nbCols int, cells map[int]int) *Board {
 	board.frontierCells[1] = void{}
 	board.frontierCells[nbCols] = void{}
 
-	// Update the frontier.
+	// Compute the initial frontier.
 	board.updateFrontier()
 
 	return board
+}
+
+func (board *Board) clone() *Board {
+	// Create a new board.
+	clone := &Board{
+		nbRows:         board.nbRows,
+		nbCols:         board.nbCols,
+		cells:          make(map[int]int, len(board.cells)),
+		completedCells: make(map[int]void, len(board.completedCells)),
+		frontierCells:  make(map[int]void, len(board.frontierCells)),
+	}
+
+	// Deep copy the nested data structures.
+	for cellId, color := range board.cells {
+		clone.cells[cellId] = color
+	}
+
+	for cellId := range board.completedCells {
+		clone.completedCells[cellId] = void{}
+	}
+
+	for cellId := range board.frontierCells {
+		clone.frontierCells[cellId] = void{}
+	}
+
+	return clone
 }
 
 func (board *Board) updateFrontier() {
@@ -53,12 +79,22 @@ func (board *Board) updateFrontier() {
 	cellsToProcess := board.frontierCells
 	board.frontierCells = make(map[int]void, len(cellsToProcess))
 
+	// Anonymous function processing one cell.
+	processCell := func(cellId int) {
+		_, alreadyCompleted := board.completedCells[cellId]
+		if !alreadyCompleted {
+			// The cell may already be present in the cellsToProcess map, but it's ok.
+			// We save a look-up in the map by not testing the presence of the key prior to adding it.
+			cellsToProcess[cellId] = void{}
+		}
+	}
+
 	// Loop over the set of cells to process until it's empty.
 	currentColor := board.cells[0]
 	for {
 		// Iterate over the cells to process.
 		for cellId := range cellsToProcess {
-			// Remove it.
+			// Remove it from the cells to process.
 			delete(cellsToProcess, cellId)
 
 			// Check if the current cell has the same color as the top-left one.
@@ -69,15 +105,6 @@ func (board *Board) updateFrontier() {
 				// Add the top, bottom, left and right adjacent cells if not already processed.
 				row := cellId / board.nbCols
 				col := cellId % board.nbCols
-
-				processCell := func(cellId int) {
-					_, alreadyCompleted := board.completedCells[cellId]
-					if !alreadyCompleted {
-						// The cell may already be present in the cellsToProcess map, but it's ok.
-						// We save a map look-up by not checking it prior to adding it.
-						cellsToProcess[cellId] = void{}
-					}
-				}
 
 				// Top
 				if row > 0 {
