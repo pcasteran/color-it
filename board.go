@@ -1,81 +1,111 @@
 package main
 
+// Empty struct (no memory usage) to use as the value for the cell maps as Go doesn't have a set data structure.
 type void struct{}
 
 type Board struct {
-	dimension     int
-	cells         map[int]int
+	// Number of rows in the board.
+	nbRows int
+
+	// Number of columns in the board.
+	nbCols int
+
+	// Map of the board cells with the cell ID as key and the color as value.
+	cells map[int]int
+
+	// Set of the cells that are in the same contiguous area with the same color as the top-left cell.
+	// They do not need to be processed anymore.
+	completedCells map[int]void
+
+	// Set of the cells adjacent to the completedCells area.
+	// They may or may not be of the same color as the top-left cell.
 	frontierCells map[int]void
 }
 
-func NewBoard(dimension int, cells map[int]int) *Board {
+func NewBoard(nbRows, nbCols int, cells map[int]int) *Board {
 	// Create the board.
 	board := &Board{
-		dimension:     dimension,
-		cells:         cells,
-		frontierCells: make(map[int]void),
+		nbRows:         nbRows,
+		nbCols:         nbCols,
+		cells:          cells,
+		completedCells: make(map[int]void),
+		frontierCells:  make(map[int]void),
 	}
 
-	// Initialize the board with a frontier consisting of only the top-left cell (ID = 0).
-	board.frontierCells[0] = void{}
+	// Initialize the board with:
+	//   - a completed area consisting of only the top-left cell (ID = 0)
+	//   - a frontier consisting of:
+	//		- the cell immediately to the right (ID = 1)
+	//		- the cell immediately to the bottom (ID = nbCols)
+	board.completedCells[0] = void{}
 
-	// Initialize the frontier cells.
-	board.updateFrontierCells()
+	board.frontierCells[1] = void{}
+	board.frontierCells[nbCols] = void{}
+
+	// Update the frontier.
+	board.updateFrontier()
 
 	return board
 }
 
-func (board *Board) updateFrontierCells() {
-	// Iterate over all the frontier cells and check the adjacent cells.
-	// The following rules will apply in order:
-	//   1) If all the adjacent cells have the same color than the current cell, then the current cell is not part of
-	//      the frontier anymore and is removed.
-	//   2) The adjacent cell(s) that have the same color than the current cell are added to the frontier.
-	// The preceding steps are repeated until no change is performed.
+func (board *Board) updateFrontier() {
+	// Initialize the set of cells to process with the current frontier and clear the latter.
+	cellsToProcess := board.frontierCells
+	board.frontierCells = make(map[int]void, len(cellsToProcess))
+
+	// Loop over the set of cells to process until it's empty.
 	currentColor := board.cells[0]
 	for {
-		changeOccured := false
+		// Iterate over the cells to process.
+		for cellId := range cellsToProcess {
+			// Remove it.
+			delete(cellsToProcess, cellId)
 
-		for cellId := range board.frontierCells {
-			row := cellId / board.dimension
-			col := cellId % board.dimension
+			// Check if the current cell has the same color as the top-left one.
+			if board.cells[cellId] == currentColor {
+				// Yes, add it to the completed area and mark the adjacent cells to be processed.
+				board.completedCells[cellId] = void{}
 
-			// Right
-			rightAdded := false
-			if col < (board.dimension - 1) {
-				rightId := cellId + 1
-				_, alreadyInFrontier := board.frontierCells[rightId]
-				if !alreadyInFrontier && board.cells[rightId] == currentColor {
-					board.frontierCells[rightId] = void{}
-					rightAdded = true
+				// Add the top, bottom, left and right adjacent cells if not already processed.
+				row := cellId / board.nbCols
+				col := cellId % board.nbCols
+
+				processCell := func(cellId int) {
+					_, alreadyCompleted := board.completedCells[cellId]
+					if !alreadyCompleted {
+						// The cell may already be present in the cellsToProcess map, but it's ok.
+						// We save a map look-up by not checking it prior to adding it.
+						cellsToProcess[cellId] = void{}
+					}
 				}
-			}
 
-			// Bottom
-			bottomAdded := false
-			if row < (board.dimension - 1) {
-				bottomId := cellId + board.dimension
-				_, alreadyInFrontier := board.frontierCells[bottomId]
-				if !alreadyInFrontier && board.cells[bottomId] == currentColor {
-					board.frontierCells[bottomId] = void{}
-					bottomAdded = true
+				// Top
+				if row > 0 {
+					processCell(cellId - board.nbCols)
 				}
-			}
 
-			// Check if some change occurred.
-			if rightAdded || bottomAdded {
-				changeOccured = true
-			}
+				// Bottom
+				if row < (board.nbRows - 1) {
+					processCell(cellId + board.nbCols)
+				}
 
-			// if both bottom and right are added to the frontier, the current cell can be removed.
-			if rightAdded && bottomAdded {
-				delete(board.frontierCells, cellId)
+				// Left
+				if col > 0 {
+					processCell(cellId - 1)
+				}
+
+				// Right
+				if col < (board.nbCols - 1) {
+					processCell(cellId + 1)
+				}
+			} else {
+				// No, add it to the frontier.
+				board.frontierCells[cellId] = void{}
 			}
 		}
 
-		// Check if some change occurred.
-		if !changeOccured {
-			// Done
+		if len(cellsToProcess) == 0 {
+			// No more cell to process, we are done.
 			break
 		}
 	}

@@ -27,12 +27,12 @@ func readInputFile(filePath string) (*Board, error) {
 
 	// Parse it.
 	cells := make(map[int]int)
-	for nRow, columns := range records {
-		for nCol, colorStr := range columns {
-			cellId := (nRow * len(columns)) + nCol
+	for iRow, columns := range records {
+		for iCol, colorStr := range columns {
+			cellId := (iRow * len(columns)) + iCol
 			color, err := strconv.Atoi(colorStr)
 			if err != nil {
-				return nil, fmt.Errorf("invalid color for row=%d, col=%d, color=%s : %w", nRow+1, nCol+1, colorStr, err)
+				return nil, fmt.Errorf("invalid color for row=%d, col=%d, color=%s : %w", iRow+1, iCol+1, colorStr, err)
 			}
 			cells[cellId] = color
 		}
@@ -44,5 +44,5 @@ func readInputFile(filePath string) (*Board, error) {
 		return nil, fmt.Errorf("invalid row and column count, the board must be a square")
 	}
 
-	return NewBoard(nbRows, cells), nil
+	return NewBoard(nbRows, nbRows /* nbCols=nbRows as the board is a square */, cells), nil
 }
