@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/csv"
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"os"
 	"strconv"
 )
 
-func readInputFile(filePath string) (*Board, error) {
+// Read the input CSV file specified by its path and load a board from its content.
+func readInputFile(filePath string, checkSquare bool) (*Board, error) {
 	// Load the raw string file content.
 	f, err := os.Open(filePath)
 	if err != nil {
@@ -17,7 +19,7 @@ func readInputFile(filePath string) (*Board, error) {
 	defer func(f *os.File) {
 		err := f.Close()
 		if err != nil {
-			// TODO
+			log.Fatal().Err(err).Msg("unable to close the input file")
 		}
 	}(f)
 
@@ -41,13 +43,15 @@ func readInputFile(filePath string) (*Board, error) {
 
 	// Check that the board is a square.
 	nbRows := len(records)
-	if len(cells) != (nbRows * nbRows) {
+	nbCols := len(cells) / nbRows
+	if checkSquare && len(cells) != (nbRows*nbRows) {
 		return nil, fmt.Errorf("invalid row and column count, the board must be a square")
 	}
 
-	return NewBoard(nbRows, nbRows /* nbCols=nbRows as the board is a square */, cells), nil
+	return NewBoard(nbRows, nbCols, cells), nil
 }
 
+// Serialize a board to it's CSV string representation.
 func serializeBoardToCsv(board *Board) (string, error) {
 	// Create a CSV writer on top of a byte buffer.
 	buffer := new(bytes.Buffer)

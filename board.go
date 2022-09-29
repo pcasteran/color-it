@@ -71,6 +71,11 @@ func (board *Board) clone() *Board {
 	return clone
 }
 
+// Update the current frontier by looking at all the cells inside it and checking if their color is the
+// same as the top-level cell. If yes:
+//  1. the cell is removed from the frontier
+//  2. the cell is integrated in the completed area
+//  3. the adjacent cells are integrated into the frontier (if necessary)
 func (board *Board) updateFrontier() {
 	// Initialize the set of cells to process with the current frontier and clear the latter.
 	cellsToProcess := board.frontierCells
@@ -135,7 +140,10 @@ func (board *Board) updateFrontier() {
 	}
 }
 
-func (board *Board) updateCompletedArea(color int) {
+// Execute a step by:
+//  1. changing the color of all the cells inside the completed area to the specified color
+//  2. extending the current frontier
+func (board *Board) playStep(color int) {
 	// Update the color of all the cells in the completed area.
 	for cellId := range board.completedCells {
 		board.cells[cellId] = color

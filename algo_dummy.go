@@ -28,7 +28,7 @@ func dummy(board *Board) ([]int, error) {
 		color := randomPickColor(board)
 
 		// Update the board.
-		board.updateCompletedArea(color)
+		board.playStep(color)
 
 		// Append the chosen color to the solution.
 		solution = append(solution, color)
