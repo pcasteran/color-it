@@ -10,7 +10,7 @@ import (
 func main() {
 	// Parse the command line arguments.
 	debug := flag.Bool("debug", false, "Set the log level to debug")
-	algo := flag.String("algo", "dummy", "Name of the algorithm to execute")
+	impl := flag.String("impl", "max-area", "Name of the algorithm implementation to execute")
 	checkSquare := flag.Bool("check-square", true, "Check whether the board is a square")
 	flag.Parse()
 
@@ -34,14 +34,20 @@ func main() {
 	}
 
 	// Get the algorithm implementation.
-	impl, exists := implementations[*algo]
+	implFn, exists := implementations[*impl]
 	if !exists {
-		log.Fatal().Err(err).Str("algorithm", *algo).Msg("invalid algorithm specified")
-		// TODO: print list of implementations
+		impls := make([]string, 0, len(implementations))
+		for i := range implementations {
+			impls = append(impls, i)
+		}
+		log.Fatal().
+			Strs("available", impls).
+			Str("selected", *impl).
+			Msg("invalid algorithm implementation specified")
 	}
 
 	// Execute it.
-	solution, err := impl(board, *debug)
+	solution, err := implFn(board, *debug)
 	if err != nil {
 		log.Fatal().Err(err).Msg("error during the algorithm execution")
 	}
