@@ -8,7 +8,7 @@ type AlgorithmFn func(board *Board, debug bool) ([]int, error)
 // ColorPickerFn is the function type returning the color to play at the next step.
 type ColorPickerFn func(board *Board) int
 
-// Linear implementation using the provided colorPickerFn function to select the color to play at the next step.
+// Linear implementation using the provided color picker function to select the color to play at the next step.
 func linearImpl(board *Board, colorPickerFn ColorPickerFn, debug bool) ([]int, error) {
 	var solution []int
 
