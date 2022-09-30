@@ -16,3 +16,6 @@
 
 .idea
 *.iml
+
+# Binary
+color-it

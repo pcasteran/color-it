@@ -7,11 +7,17 @@ import (
 	"os"
 )
 
+// Available algorithm implementations.
+var implementations = map[string]AlgorithmFn{
+	"dummy":    dummy,
+	"max-area": maximizeStepArea,
+}
+
 func main() {
 	// Parse the command line arguments.
-	debug := flag.Bool("debug", false, "Set the log level to debug")
+	debug := flag.Bool("debug", false, "Enable the debug logs")
 	impl := flag.String("impl", "max-area", "Name of the algorithm implementation to execute")
-	checkSquare := flag.Bool("check-square", true, "Check whether the board is a square")
+	checkSquare := flag.Bool("check-square", true, "Check whether the board is a square after loading it")
 	flag.Parse()
 
 	inputFile := flag.Arg(0)
