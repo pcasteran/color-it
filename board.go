@@ -83,6 +83,7 @@ func (board *Board) updateFrontier() {
 
 	// Closure function processing one cell.
 	processCell := func(cellId int) {
+		// Check if the cell has not been already processed.
 		_, alreadyCompleted := board.completedCells[cellId]
 		if !alreadyCompleted {
 			// The cell may already be present in the cellsToProcess map, but it's ok.
