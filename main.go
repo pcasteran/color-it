@@ -37,10 +37,11 @@ func main() {
 	impl, exists := implementations[*algo]
 	if !exists {
 		log.Fatal().Err(err).Str("algorithm", *algo).Msg("invalid algorithm specified")
+		// TODO: print list of implementations
 	}
 
 	// Execute it.
-	solution, err := impl(board)
+	solution, err := impl(board, *debug)
 	if err != nil {
 		log.Fatal().Err(err).Msg("error during the algorithm execution")
 	}
