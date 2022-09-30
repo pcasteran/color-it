@@ -1,2 +1,3 @@
 # color-it
-Implemenation for the "color-it" contest
+
+Implementation for the "color-it" contest
