@@ -69,6 +69,10 @@ func evaluateBoard(board *Board, steps []int, bestStepCount int) []int {
 				// Check if we improved the overall best solution.
 				if solutionStepCount < bestStepCount {
 					bestStepCount = solutionStepCount
+					log.Debug().
+						Int("step-count", bestStepCount).
+						Int("depth", len(steps)).
+						Msg("new best overall solution found")
 				}
 			}
 		}
