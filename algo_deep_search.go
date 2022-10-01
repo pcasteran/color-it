@@ -1,16 +1,25 @@
 package main
 
+import "math"
+
 // Implementation exploring the space of possibilities with a deep tree search to identify the optimal solution.
 func deepSearch(board *Board, debug bool) ([]int, error) {
 	// Evaluate the board and return the best steps solution.
-	solution := evaluateBoard(board, []int{})
+	solution := evaluateBoard(board, []int{}, math.MaxInt)
 	return solution, nil
 }
 
-func evaluateBoard(board *Board, steps []int) []int {
+// Recursive function to evaluate a board and the possible solution(s) from it.
+func evaluateBoard(board *Board, steps []int, bestStepCount int) []int {
 	// Check if the board is solved.
 	if board.isSolved() {
 		return steps
+	}
+
+	// Check if we can still hope to improve the current best solution.
+	if !(len(steps) < (bestStepCount - 1)) {
+		// We can't improve, just stop there for this branch.
+		return nil
 	}
 
 	// Get the set of available colors in the frontier.
@@ -27,14 +36,24 @@ func evaluateBoard(board *Board, steps []int) []int {
 		boardCopy := board.clone()
 		boardCopy.playStep(color)
 
-		// Continue the evaluation.
-		stepsCopy := make([]int, len(steps))
+		stepsCopy := make([]int, len(steps)+1)
 		copy(stepsCopy, steps)
-		stepsCopy = append(stepsCopy, color)
+		stepsCopy[len(stepsCopy)-1] = color
 
-		solution := evaluateBoard(boardCopy, stepsCopy)
-		if bestSolution == nil || len(solution) < len(bestSolution) {
-			bestSolution = solution
+		// Continue the evaluation.
+		solution := evaluateBoard(boardCopy, stepsCopy, bestStepCount)
+		if solution != nil {
+			// Check if the current solution is better than the best local one.
+			solutionStepCount := len(solution)
+			if bestSolution == nil || solutionStepCount < len(bestSolution) {
+				// Yes, we improved the best local solution.
+				bestSolution = solution
+
+				// Check if we improved the overall best solution.
+				if solutionStepCount < bestStepCount {
+					bestStepCount = solutionStepCount
+				}
+			}
 		}
 	}
 
