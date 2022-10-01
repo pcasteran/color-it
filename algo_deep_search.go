@@ -1,11 +1,28 @@
 package main
 
-import "math"
+import (
+	"github.com/rs/zerolog/log"
+	"math"
+)
 
 // Implementation exploring the space of possibilities with a deep tree search to identify the optimal solution.
 func deepSearch(board *Board, debug bool) ([]int, error) {
+	// First compute a "good" solution to have an initial step count that will be used to prune the graph search.
+	// It's very probably not the optimal solution, but it's fast to compute.
+	initialSolutionStepCount := math.MaxInt
+	initialSolution, err := maximizeStepArea(board.clone(), debug)
+	if err != nil {
+		// No initial solution, this is unfortunate but not blocking.
+		log.Warn().Err(err).Msg("unable to compute the initial solution")
+	} else {
+		// The initial solution is valid.
+		initialSolutionStepCount = len(initialSolution)
+		log.Info().Int("step-count", initialSolutionStepCount).Msg("Initial solution found")
+	}
+
 	// Evaluate the board and return the best steps solution.
-	solution := evaluateBoard(board, []int{}, math.MaxInt)
+	solution := evaluateBoard(board, []int{}, initialSolutionStepCount)
+
 	return solution, nil
 }
 
