@@ -3,13 +3,13 @@ package main
 import "fmt"
 
 // AlgorithmFn is the function type that will be used by all the implementations.
-type AlgorithmFn func(board *Board, debug bool) ([]int, error)
+type AlgorithmFn func(board *Board, solutions chan []int, done chan void, debug bool) ([]int, error)
 
 // ColorPickerFn is the function type returning the color to play at the next step.
 type ColorPickerFn func(board *Board) int
 
 // Linear implementation using the provided color picker function to select the color to play at the next step.
-func linearImpl(board *Board, colorPickerFn ColorPickerFn, debug bool) ([]int, error) {
+func linearImpl(board *Board, solutions chan []int, done chan void, colorPickerFn ColorPickerFn, debug bool) ([]int, error) {
 	var solution []int
 
 	// Loop until the board is solved.
@@ -37,6 +37,14 @@ func linearImpl(board *Board, colorPickerFn ColorPickerFn, debug bool) ([]int, e
 
 		// Append the chosen color to the solution.
 		solution = append(solution, color)
+	}
+
+	// Push the new solution to the channel.
+	solutions <- solution
+
+	// Notify that the execution is finished.
+	if done != nil {
+		done <- void{}
 	}
 
 	return solution, nil

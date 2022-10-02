@@ -2,9 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"os"
+	"time"
 )
 
 // Available algorithm implementations.
@@ -19,6 +21,7 @@ func main() {
 	debug := flag.Bool("debug", false, "Enable the debug logs")
 	impl := flag.String("impl", "deep-search", "Name of the algorithm implementation to execute")
 	checkSquare := flag.Bool("check-square", true, "Check whether the board is a square after loading it")
+	timeoutSec := flag.Int("timeout", 115, "Timeout in seconds of the execution")
 	flag.Parse()
 
 	inputFile := flag.Arg(0)
@@ -54,9 +57,38 @@ func main() {
 	}
 
 	// Execute it.
-	solution, err := implFn(board, *debug)
-	if err != nil {
-		log.Fatal().Err(err).Msg("error during the algorithm execution")
+	var bestSolution []int = nil
+	solutions := make(chan []int)
+	done := make(chan void)
+	timeout := time.After(time.Duration(*timeoutSec) * time.Second)
+	go func() {
+		_, err := implFn(board, solutions, done, *debug)
+		if err != nil {
+			log.Fatal().Err(err).Msg("error during the algorithm execution")
+		}
+	}()
+
+mainLoop:
+	for {
+		select {
+		case solution := <-solutions:
+			// A new solution has been pushed to the channel.
+			if bestSolution == nil || len(solution) < len(bestSolution) {
+				log.Info().Int("nb-steps", len(solution)).Ints("solution", solution).Msgf("new best solution found")
+				bestSolution = solution
+			}
+		case <-done:
+			// The algorithm execution is finished.
+			log.Info().Msg("algorithm execution finished")
+			break mainLoop
+		case <-timeout:
+			// Timeout, the algorithm execution must be stopped.
+			log.Warn().Msg("timeout reached during the algorithm execution")
+			break mainLoop
+		}
 	}
-	log.Info().Int("nb-steps", len(solution)).Ints("solution", solution).Msgf("solution found !!")
+
+	// Print the best solution found.
+	log.Info().Int("nb-steps", len(bestSolution)).Ints("solution", bestSolution).Msgf("best solution")
+	fmt.Println(bestSolution)
 }
