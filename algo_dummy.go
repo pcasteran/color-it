@@ -5,8 +5,8 @@ import (
 )
 
 // Dummy implementation randomly selecting a color in the frontier at each step.
-func dummy(board *Board, debug bool) ([]int, error) {
-	return linearImpl(board, randomPickColor, debug)
+func dummy(board *Board, solutions chan []int, done chan void, debug bool) ([]int, error) {
+	return linearImpl(board, solutions, done, randomPickColor, debug)
 }
 
 // Returns a randomly picked color from the frontier.

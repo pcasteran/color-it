@@ -1,8 +1,8 @@
 package main
 
 // Implementation selecting the color that maximizes the converted area for each step.
-func maximizeStepArea(board *Board, debug bool) ([]int, error) {
-	return linearImpl(board, pickColorWithLargestArea, debug)
+func maximizeStepArea(board *Board, solutions chan []int, done chan void, debug bool) ([]int, error) {
+	return linearImpl(board, solutions, done, pickColorWithLargestArea, debug)
 }
 
 // Returns the color from the frontier with the largest area.
