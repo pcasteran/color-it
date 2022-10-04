@@ -1,5 +1,6 @@
 package main
 
+// Board represents the current status of the game.
 type Board struct {
 	// Number of rows in the board.
 	nbRows int

@@ -62,14 +62,14 @@ func computeInitialSolutionStepCount(board *Board, solutions chan []int, debug b
 }
 
 // Recursive function to evaluate a board and the possible solution(s) from it.
-func evaluateBoard(board *Board, steps []int, bestStepCount int, solutions chan []int) []int {
+func evaluateBoard(board *Board, steps []int, bestSolutionStepCount int, solutions chan []int) []int {
 	// Check if the board is solved.
 	if board.isSolved() {
 		return steps
 	}
 
 	// Check if we can still hope to improve the current best solution.
-	if !(len(steps) < (bestStepCount - 1)) {
+	if !(len(steps) < (bestSolutionStepCount - 1)) {
 		// We can't improve, just stop there for this branch.
 		return nil
 	}
@@ -93,7 +93,7 @@ func evaluateBoard(board *Board, steps []int, bestStepCount int, solutions chan 
 		stepsCopy[len(stepsCopy)-1] = color
 
 		// Continue the evaluation.
-		solution := evaluateBoard(boardCopy, stepsCopy, bestStepCount, solutions)
+		solution := evaluateBoard(boardCopy, stepsCopy, bestSolutionStepCount, solutions)
 		if solution != nil {
 			// Check if the current solution is better than the best local one.
 			solutionStepCount := len(solution)
@@ -102,8 +102,8 @@ func evaluateBoard(board *Board, steps []int, bestStepCount int, solutions chan 
 				bestSolution = solution
 
 				// Check if we improved the overall best solution.
-				if solutionStepCount < bestStepCount {
-					bestStepCount = solutionStepCount
+				if solutionStepCount < bestSolutionStepCount {
+					bestSolutionStepCount = solutionStepCount
 
 					// Push the new solution to the channel.
 					solutions <- solution
