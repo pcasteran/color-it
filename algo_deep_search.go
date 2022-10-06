@@ -7,20 +7,30 @@ import (
 	"sync"
 )
 
+type DeepSearchContext struct {
+	bestSolutionStepCount int
+	processedCache        map[string]int
+	solutions             chan []int
+}
+
 // Implementation exploring the space of possibilities with a deep tree search to identify the optimal solution.
 func deepSearch(board *Board, solutions chan []int, done chan void, debug bool) ([]int, error) {
 	// First compute a "good" solution to have an initial step count that will be used to prune the graph search.
 	// It's very probably not the optimal solution, but it's fast to compute.
 	initialSolutionStepCount := computeInitialSolutionStepCount(board, solutions, debug)
 
-	// Evaluate the board and return the best steps solution.
-	processedCache := make(map[string]int)
-	solution := evaluateBoard(board, []int{}, initialSolutionStepCount, processedCache, solutions)
+	// Evaluate the board.
+	ctx := &DeepSearchContext{
+		bestSolutionStepCount: initialSolutionStepCount,
+		processedCache:        make(map[string]int),
+		solutions:             solutions,
+	}
+	evaluateBoard(board, []int{}, ctx)
 
 	// Notify that the execution is finished.
 	done <- void{}
 
-	return solution, nil
+	return nil, nil
 }
 
 // Compute an initial solution using a fast but not optimal implementation and return the best step count found.
@@ -63,33 +73,41 @@ func computeInitialSolutionStepCount(board *Board, solutions chan []int, debug b
 }
 
 // Recursive function to evaluate a board and the possible solution(s) from it.
-func evaluateBoard(board *Board, steps []int, bestSolutionStepCount int, processedCache map[string]int, solutions chan []int) []int {
+func evaluateBoard(board *Board, steps []int, ctx *DeepSearchContext) {
 	// Get the current step count.
 	currentStepCount := len(steps)
 
 	// Check if we have already processed this board.
 	boardId := board.getId()
-	bestPreviousStepCount, alreadyProcessed := processedCache[boardId]
+	previousBestStepCount, alreadyProcessed := ctx.processedCache[boardId]
 	if alreadyProcessed {
 		// Check if we are improving the best solution for this board.
-		if currentStepCount >= bestPreviousStepCount {
+		if currentStepCount >= previousBestStepCount {
 			// We are not improving, stop now.
-			return nil
+			return
 		}
 	} else {
 		// Update the cache.
-		processedCache[boardId] = currentStepCount
+		ctx.processedCache[boardId] = currentStepCount
 	}
 
 	// Check if the board is solved.
 	if board.isSolved() {
-		return steps
+		// Check if we improved the overall best solution.
+		if currentStepCount < ctx.bestSolutionStepCount {
+			ctx.bestSolutionStepCount = currentStepCount
+
+			// Push the new solution to the channel.
+			ctx.solutions <- steps
+		}
+
+		return
 	}
 
 	// Check if we can still hope to improve the current best solution.
-	if !(currentStepCount < (bestSolutionStepCount - 1)) {
+	if !(currentStepCount < (ctx.bestSolutionStepCount - 1)) {
 		// We can't improve, just stop there.
-		return nil
+		return
 	}
 
 	// Get the set of available colors in the frontier.
@@ -100,7 +118,6 @@ func evaluateBoard(board *Board, steps []int, bestSolutionStepCount int, process
 	}
 
 	// Try all the colors in the frontier and continue the evaluation.
-	var bestSolution []int = nil
 	for color := range colors {
 		// Clone and update the board.
 		boardCopy := board.clone()
@@ -112,24 +129,6 @@ func evaluateBoard(board *Board, steps []int, bestSolutionStepCount int, process
 		stepsCopy[len(stepsCopy)-1] = color
 
 		// Continue the evaluation.
-		solution := evaluateBoard(boardCopy, stepsCopy, bestSolutionStepCount, processedCache, solutions)
-		if solution != nil {
-			// Check if the current solution is better than the best local one.
-			solutionStepCount := len(solution)
-			if bestSolution == nil || solutionStepCount < len(bestSolution) {
-				// Yes, we improved the best local solution.
-				bestSolution = solution
-
-				// Check if we improved the overall best solution.
-				if solutionStepCount < bestSolutionStepCount {
-					bestSolutionStepCount = solutionStepCount
-
-					// Push the new solution to the channel.
-					solutions <- solution
-				}
-			}
-		}
+		evaluateBoard(boardCopy, stepsCopy, ctx)
 	}
-
-	return bestSolution
 }

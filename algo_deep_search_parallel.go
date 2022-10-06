@@ -13,7 +13,7 @@ func deepSearchParallel(board *Board, solutions chan []int, done chan void, debu
 	// It's very probably not the optimal solution, but it's fast to compute.
 	initialSolutionStepCount := computeInitialSolutionStepCount(board, solutions, debug)
 
-	// Evaluate the board and return the best steps solution.
+	// Evaluate the board.
 	ctx := NewDeepSearchParallelContext(int64(initialSolutionStepCount), solutions)
 	evaluateBoardParallel(board, []int{}, ctx)
 
