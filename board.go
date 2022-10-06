@@ -1,5 +1,10 @@
 package main
 
+import (
+	"strconv"
+	"strings"
+)
+
 // Board represents the current status of the game.
 type Board struct {
 	// Number of rows in the board.
@@ -70,6 +75,21 @@ func (board *Board) clone() *Board {
 	}
 
 	return clone
+}
+
+// Return a string identifier uniquely identifying a board configuration.
+func (board *Board) getId() string {
+	// Create a string builder and add all the cells' color.
+	var builder strings.Builder
+	builder.Grow(board.nbRows * board.nbCols)
+	for iRow := 0; iRow < board.nbRows; iRow++ {
+		for iCol := 0; iCol < board.nbCols; iCol++ {
+			cellId := (iRow * board.nbCols) + iCol
+			color := board.cells[cellId]
+			builder.WriteString(strconv.Itoa(color))
+		}
+	}
+	return builder.String()
 }
 
 // Update the current frontier by looking at all the cells inside it and checking if their color is the

@@ -59,7 +59,7 @@ func main() {
 
 	// Execute it.
 	var bestSolution []int = nil
-	solutions := make(chan []int)
+	solutions := make(chan []int, 10)
 	done := make(chan void)
 	timeout := time.After(time.Duration(*timeoutSec) * time.Second)
 	go func() {

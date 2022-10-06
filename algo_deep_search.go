@@ -14,7 +14,8 @@ func deepSearch(board *Board, solutions chan []int, done chan void, debug bool) 
 	initialSolutionStepCount := computeInitialSolutionStepCount(board, solutions, debug)
 
 	// Evaluate the board and return the best steps solution.
-	solution := evaluateBoard(board, []int{}, initialSolutionStepCount, solutions)
+	processedCache := make(map[string]int)
+	solution := evaluateBoard(board, []int{}, initialSolutionStepCount, processedCache, solutions)
 
 	// Notify that the execution is finished.
 	done <- void{}
@@ -62,15 +63,32 @@ func computeInitialSolutionStepCount(board *Board, solutions chan []int, debug b
 }
 
 // Recursive function to evaluate a board and the possible solution(s) from it.
-func evaluateBoard(board *Board, steps []int, bestSolutionStepCount int, solutions chan []int) []int {
+func evaluateBoard(board *Board, steps []int, bestSolutionStepCount int, processedCache map[string]int, solutions chan []int) []int {
+	// Get the current step count.
+	currentStepCount := len(steps)
+
+	// Check if we have already processed this board.
+	boardId := board.getId()
+	bestPreviousStepCount, alreadyProcessed := processedCache[boardId]
+	if alreadyProcessed {
+		// Check if we are improving the best solution for this board.
+		if currentStepCount >= bestPreviousStepCount {
+			// We are not improving, stop now.
+			return nil
+		}
+	} else {
+		// Update the cache.
+		processedCache[boardId] = currentStepCount
+	}
+
 	// Check if the board is solved.
 	if board.isSolved() {
 		return steps
 	}
 
 	// Check if we can still hope to improve the current best solution.
-	if !(len(steps) < (bestSolutionStepCount - 1)) {
-		// We can't improve, just stop there for this branch.
+	if !(currentStepCount < (bestSolutionStepCount - 1)) {
+		// We can't improve, just stop there.
 		return nil
 	}
 
@@ -88,12 +106,13 @@ func evaluateBoard(board *Board, steps []int, bestSolutionStepCount int, solutio
 		boardCopy := board.clone()
 		boardCopy.playStep(color)
 
-		stepsCopy := make([]int, len(steps)+1)
+		// Copy the steps and append the current color.
+		stepsCopy := make([]int, currentStepCount+1)
 		copy(stepsCopy, steps)
 		stepsCopy[len(stepsCopy)-1] = color
 
 		// Continue the evaluation.
-		solution := evaluateBoard(boardCopy, stepsCopy, bestSolutionStepCount, solutions)
+		solution := evaluateBoard(boardCopy, stepsCopy, bestSolutionStepCount, processedCache, solutions)
 		if solution != nil {
 			// Check if the current solution is better than the best local one.
 			solutionStepCount := len(solution)
