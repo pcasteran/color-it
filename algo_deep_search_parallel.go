@@ -27,7 +27,7 @@ func deepSearchParallel(board *Board, solutions chan []int, done chan void, debu
 func evaluateBoardParallel(board *Board, steps []int, ctx *DeepSearchParallelContext) {
 	// Check if the board is solved.
 	if board.isSolved() {
-		ctx.addNewSolution(steps)
+		ctx.processNewSolution(steps)
 		return
 	}
 
@@ -48,17 +48,22 @@ func evaluateBoardParallel(board *Board, steps []int, ctx *DeepSearchParallelCon
 
 	// Try all the colors in the frontier and continue the evaluation.
 	for color := range colors {
-		// Clone and update the board.
-		boardCopy := board.clone()
-		boardCopy.playStep(color)
-
-		stepsCopy := make([]int, len(steps)+1)
-		copy(stepsCopy, steps)
-		stepsCopy[len(stepsCopy)-1] = color
-
-		// Continue the evaluation.
-		evaluateBoardParallel(boardCopy, stepsCopy, ctx)
+		playAndEvaluateParallel(board, steps, color, ctx)
 	}
+}
+
+func playAndEvaluateParallel(board *Board, steps []int, color int, ctx *DeepSearchParallelContext) {
+	// Clone and update the board.
+	boardCopy := board.clone()
+	boardCopy.playStep(color)
+
+	// Copy the steps and append the current color.
+	stepsCopy := make([]int, len(steps)+1)
+	copy(stepsCopy, steps)
+	stepsCopy[len(stepsCopy)-1] = color
+
+	// Continue the evaluation.
+	evaluateBoardParallel(boardCopy, stepsCopy, ctx)
 }
 
 type DeepSearchParallelContext struct {
@@ -80,8 +85,7 @@ func NewDeepSearchParallelContext(bestSolutionStepCount int64, solutions chan []
 	return ctx
 }
 
-// TODO: rename
-func (ctx *DeepSearchParallelContext) addNewSolution(solution []int) {
+func (ctx *DeepSearchParallelContext) processNewSolution(solution []int) {
 	solutionStepCount := int64(len(solution))
 	for {
 		// Get the current best solution step count.
