@@ -23,7 +23,7 @@ func deepSearch(board *Board, solutions chan []int, done chan void, debug bool) 
 	solution := evaluateBoard(board, []int{}, ctx)
 
 	// Print debug stats.
-	ctx.printStats(true)
+	ctx.logStats(true)
 
 	// Notify that the execution is finished.
 	if done != nil {
@@ -77,7 +77,7 @@ func evaluateBoard(board *Board, steps []int, ctx *DeepSearchContext) []int {
 	// Print debug stats.
 	ctx.evaluationCounter++
 	if ctx.evaluationCounter%10_000 == 0 {
-		ctx.printStats(false)
+		ctx.logStats(false)
 	}
 
 	// Get the current step count.
@@ -206,18 +206,32 @@ func evaluateBoard(board *Board, steps []int, ctx *DeepSearchContext) []int {
 	return localBestSolution
 }
 
+// DeepSearchCacheEntry contains the properties of a board configuration cached entry.
 type DeepSearchCacheEntry struct {
-	stepCount    int
+	// The minimum step count at which this board configuration has been evaluated.
+	stepCount int
+
+	// The best solution available from this board configuration.
 	bestSolution []int
 }
 
+// DeepSearchContext contains the properties used by the deep search implementation recursive calls.
 type DeepSearchContext struct {
-	debug                 bool
-	bestSolutionStepCount int
-	processedCache        map[string]*DeepSearchCacheEntry
-	solutions             chan []int
+	// Debug flag to activate some logs.
+	debug bool
 
-	// Debug stats.
+	// Current best solution step count.
+	bestSolutionStepCount int
+
+	// Cache containing the already processed board configuration.
+	// The key is a string uniquely identifying a configuration see Board.getId.
+	// The value is an instance of type DeepSearchCacheEntry.
+	processedCache map[string]*DeepSearchCacheEntry
+
+	// The channel in which to send the solutions found.
+	solutions chan []int
+
+	// Debug statistics.
 	evaluationCounter    int
 	solvedCounter        int
 	prunedCounter        int
@@ -226,7 +240,8 @@ type DeepSearchContext struct {
 	cacheMergedCounter   int
 }
 
-func (ctx *DeepSearchContext) printStats(finished bool) {
+// Log the debug statistics.
+func (ctx *DeepSearchContext) logStats(finished bool) {
 	if ctx.debug {
 		msg := "progress"
 		if finished {
