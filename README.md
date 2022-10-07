@@ -14,7 +14,7 @@ go mod download
 go build
 
 # Test it.
-time ./color-it samples/30_30_3-1.csv
+./color-it samples/30_30_3-1.csv
 ```
 
 ### Build a Docker image
@@ -24,7 +24,7 @@ time ./color-it samples/30_30_3-1.csv
 docker build -t color-it .
 
 # Test it.
-time docker run --rm -v $(pwd)/samples/30_30_3-1.csv:/data/input.csv color-it /data/input.csv
+docker run --rm -v $(pwd)/samples/30_30_3-1.csv:/data/input.csv color-it /data/input.csv
 ```
 
 ## Usage
@@ -44,6 +44,18 @@ Usage of ./color-it:
   -timeout int
         Timeout in seconds of the execution (default 115)
 ```
+
+### Output
+
+The best solution found is printed on stdout, one step per line at the end of the program execution, for example:
+```bash
+1
+2
+0
+2
+```
+
+The file `out.csv` is also created at the end of the program execution and contains the solution (same format).
 
 ## Results
 

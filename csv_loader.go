@@ -80,3 +80,30 @@ func serializeBoardToCsv(board *Board) (string, error) {
 
 	return csvStr, nil
 }
+
+func writeOutputFile(fileName string, steps []int) error {
+	// Open the file for writing.
+	f, err := os.Create(fileName)
+	if err != nil {
+		return fmt.Errorf("unable to open the output file: %w", err)
+	}
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			log.Fatal().Err(err).Msg("unable to close the output file")
+		}
+	}(f)
+
+	// Create the CSV writer and append all the steps.
+	writer := csv.NewWriter(f)
+	defer writer.Flush()
+
+	for _, color := range steps {
+		record := []string{strconv.Itoa(color)}
+		if err := writer.Write(record); err != nil {
+			return fmt.Errorf("error writing record to file: %w", err)
+		}
+	}
+
+	return nil
+}

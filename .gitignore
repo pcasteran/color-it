@@ -22,3 +22,6 @@ color-it
 
 # Profiling data
 *.prof
+
+# Output file
+out.csv
