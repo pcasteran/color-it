@@ -19,3 +19,6 @@
 
 # Binary
 color-it
+
+# Profiling data
+*.prof

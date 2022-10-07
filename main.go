@@ -59,7 +59,7 @@ func main() {
 
 	// Execute it.
 	var bestSolution []int = nil
-	solutions := make(chan []int, 10)
+	solutions := make(chan []int, 100)
 	done := make(chan void)
 	timeout := time.After(time.Duration(*timeoutSec) * time.Second)
 	go func() {
@@ -75,7 +75,7 @@ mainLoop:
 		case solution := <-solutions:
 			// A new solution has been pushed to the channel.
 			if bestSolution == nil || len(solution) < len(bestSolution) {
-				log.Info().Int("nb-steps", len(solution)).Ints("solution", solution).Msgf("new best solution found")
+				log.Info().Int("nb-steps", len(solution)).Ints("solution", solution).Msg("new best solution found")
 				bestSolution = solution
 			}
 		case <-done:
@@ -90,6 +90,6 @@ mainLoop:
 	}
 
 	// Print the best solution found.
-	log.Info().Int("nb-steps", len(bestSolution)).Ints("solution", bestSolution).Msgf("best solution")
+	log.Info().Int("nb-steps", len(bestSolution)).Ints("solution", bestSolution).Msg("best solution")
 	fmt.Println(bestSolution)
 }
