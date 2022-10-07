@@ -21,7 +21,7 @@ time ./color-it samples/30_30_3-1.csv
 
 ```bash
 # Build the Docker image
-docker build -r color-it .
+docker build -t color-it .
 
 # Test it.
 time docker run --rm -v $(pwd)/samples/30_30_3-1.csv:/data/input.csv color-it /data/input.csv
