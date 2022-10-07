@@ -257,6 +257,19 @@ func (board *Board) getColorsInFrontier() []int {
 	return colors
 }
 
+// Returns a map of the remaining colors in the board, with the color as key and the count as value.
+func (board *Board) getRemainingColors() map[int]int {
+	// Iterate over the board cells and get the colors of the not completed ones
+	remainingColors := make(map[int]int)
+	for cellId, color := range board.cells {
+		_, completed := board.completedCells[cellId]
+		if !completed {
+			remainingColors[color]++
+		}
+	}
+	return remainingColors
+}
+
 // Execute a step by:
 //  1. changing the color of all the cells inside the completed area to the specified color
 //  2. extending the current frontier

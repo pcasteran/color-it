@@ -113,7 +113,9 @@ func evaluateBoard(board *Board, steps []int, ctx *DeepSearchContext) []int {
 	}
 
 	// Check if we can still hope to improve the current best solution.
-	if currentStepCount >= (ctx.bestSolutionStepCount - 1) {
+	// Check that the number of remaining colors in the board (i.e. minimum number of steps to play) allows to improve.
+	remainingColors := board.getRemainingColors()
+	if (currentStepCount + len(remainingColors)) >= ctx.bestSolutionStepCount {
 		// We can't improve, just stop there.
 		ctx.prunedCounter++
 		return nil
