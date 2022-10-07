@@ -27,6 +27,24 @@ docker build -r color-it .
 time docker run --rm -v $(pwd)/samples/30_30_3-1.csv:/data/input.csv color-it /data/input.csv
 ```
 
+## Usage
+
+The only required parameter to run the program is the input CSV file to process; it is passed as a positional argument.
+Some other optional arguments can be provided to control the program behavior but the default values should be used for
+the contest.
+
+```bash
+Usage of ./color-it:
+  -check-square
+        Check whether the board is a square after loading it (default true)
+  -debug
+        Enable the debug logs
+  -impl string
+        Name of the algorithm implementation to execute (default "deep-search")
+  -timeout int
+        Timeout in seconds of the execution (default 115)
+```
+
 ## Results
 
 | Sample        | Deep search                                                                            |
