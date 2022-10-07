@@ -11,10 +11,11 @@ import (
 
 // Available algorithm implementations.
 var implementations = map[string]AlgorithmFn{
-	"dummy":         dummy,
-	"max-area":      maximizeStepArea,
-	"max-area-deep": maximizeStepAreaDeep,
-	"deep-search":   deepSearch,
+	"dummy":                dummy,
+	"max-area":             maximizeStepArea,
+	"max-area-deep":        maximizeStepAreaDeep,
+	"deep-search":          deepSearch,
+	"deep-search-parallel": deepSearchParallel,
 }
 
 func main() {
