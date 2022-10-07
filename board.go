@@ -1,5 +1,12 @@
 package main
 
+import (
+	"sort"
+	"strconv"
+	"strings"
+)
+
+// Board represents the current status of the game.
 type Board struct {
 	// Number of rows in the board.
 	nbRows int
@@ -71,6 +78,21 @@ func (board *Board) clone() *Board {
 	return clone
 }
 
+// Return a string identifier uniquely identifying a board configuration.
+func (board *Board) getId() string {
+	// Create a string builder and add all the cells' color.
+	var builder strings.Builder
+	builder.Grow(board.nbRows * board.nbCols)
+	for iRow := 0; iRow < board.nbRows; iRow++ {
+		for iCol := 0; iCol < board.nbCols; iCol++ {
+			cellId := (iRow * board.nbCols) + iCol
+			color := board.cells[cellId]
+			builder.WriteString(strconv.Itoa(color))
+		}
+	}
+	return builder.String()
+}
+
 // Update the current frontier by looking at all the cells inside it and checking if their color is the
 // same as the top-level cell. If yes:
 //  1. the cell is removed from the frontier
@@ -139,6 +161,113 @@ func (board *Board) updateFrontier() {
 			break
 		}
 	}
+}
+
+// Returns the list of colors in the frontier ordered by descending area size.
+func (board *Board) getColorsInFrontier() []int {
+	// Compute the set of cells (areas) accessible from the frontier and grouped by color.
+	areasByColor := make(map[int]map[int]void)
+
+	// Initialize the set of cells to process with the current frontier.
+	cellsToProcess := make(map[int]void, len(board.frontierCells))
+	for cellId := range board.frontierCells {
+		cellsToProcess[cellId] = void{}
+	}
+
+	// Initialized the set of processed cells to an empty set.
+	processedCells := make(map[int]void)
+
+	// Closure function processing one cell.
+	processCell := func(cellId, expectedColor int) {
+		// Check if the cell color is the same as the expected one.
+		color := board.cells[cellId]
+		if color == expectedColor {
+			// Check if the cell has not been already processed.
+			_, alreadyProcessed := processedCells[cellId]
+			if !alreadyProcessed {
+				// The cell may already be present in the cellsToProcess map, but it's ok.
+				// We save a look-up in the map by not testing the presence of the key prior to adding it.
+				cellsToProcess[cellId] = void{}
+			}
+		}
+	}
+
+	// Loop over the set of cells to process until it's empty.
+	for {
+		// Iterate over the cells to process.
+		for cellId := range cellsToProcess {
+			// Remove it from the cells to process.
+			delete(cellsToProcess, cellId)
+			processedCells[cellId] = void{}
+
+			// Add it to the area corresponding to its color.
+			color := board.cells[cellId]
+			area := areasByColor[color]
+			if area == nil {
+				// Lazy initialization of the area set for this color.
+				area = make(map[int]void)
+				areasByColor[color] = area
+			}
+			area[cellId] = void{}
+
+			// Check if the top, bottom, left and right adjacent cells are of the same color.
+			row := cellId / board.nbCols
+			col := cellId % board.nbCols
+
+			// Top
+			if row > 0 {
+				processCell(cellId-board.nbCols, color)
+			}
+
+			// Bottom
+			if row < (board.nbRows - 1) {
+				processCell(cellId+board.nbCols, color)
+			}
+
+			// Left
+			if col > 0 {
+				processCell(cellId-1, color)
+			}
+
+			// Right
+			if col < (board.nbCols - 1) {
+				processCell(cellId+1, color)
+			}
+		}
+
+		if len(cellsToProcess) == 0 {
+			// No more cell to process, we are done.
+			break
+		}
+	}
+
+	// Get the list of colors.
+	colors := make([]int, 0, len(areasByColor))
+	for color := range areasByColor {
+		colors = append(colors, color)
+	}
+
+	// Order it by the cell count in descending order.
+	sort.Slice(colors, func(i, j int) bool {
+		color1 := colors[i]
+		color2 := colors[j]
+		return len(areasByColor[color1]) > len(areasByColor[color2])
+	})
+
+	return colors
+}
+
+// Returns a map of the remaining colors in the board, with the color as key and the count as value.
+func (board *Board) getRemainingColors() map[int]int {
+	// Iterate over the board cells and get the colors of the not completed ones
+	remainingColors := make(map[int]int)
+	for cellId, color := range board.cells {
+		_, completed := board.completedCells[cellId]
+		if !completed {
+			remainingColors[color]++
+		}
+	}
+	return remainingColors
 }
 
 // Execute a step by:

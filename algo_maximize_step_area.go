@@ -7,91 +7,56 @@ func maximizeStepArea(board *Board, solutions chan []int, done chan void, debug 
 
 // Returns the color from the frontier with the largest area.
 func pickColorWithLargestArea(board *Board) int {
-	// Compute the set of cells (areas) accessible from the frontier and grouped by color.
-	areasByColor := make(map[int]map[int]void)
+	// Get the list of colors in the frontier ordered by descending area size.
+	// Return the first one (guaranteed to exist as the board is not solved).
+	return board.getColorsInFrontier()[0]
+}
 
-	// Initialize the set of cells to process with the current frontier.
-	cellsToProcess := make(map[int]void, len(board.frontierCells))
-	for cellId := range board.frontierCells {
-		cellsToProcess[cellId] = void{}
+// Implementation selecting the color that maximizes the converted area for N steps in the tree of configurations.
+func maximizeStepAreaDeep(board *Board, solutions chan []int, done chan void, debug bool) ([]int, error) {
+	return linearImpl(board, solutions, done, pickColorWithLargestAreaDeep, debug)
+}
+
+// Returns the color from the frontier with the largest area for N steps in the tree of configurations.
+func pickColorWithLargestAreaDeep(board *Board) int {
+	depth := 3 // 3 is the best trade-off between performance and accuracy
+	color, _ := doPickColorWithLargestAreaDeep(board, depth)
+	return color
+}
+
+func doPickColorWithLargestAreaDeep(board *Board, depth int) (int, *Board) {
+	// Check if the board is solved.
+	if board.isSolved() {
+		return -1, board
 	}
 
-	// Initialized the set of processed cells to an empty set.
-	processedCells := make(map[int]void)
+	// Check if the evaluation is finished.
+	if depth <= 0 {
+		// Evaluation finished.
+		return -1, board
+	}
 
-	// Closure function processing one cell.
-	processCell := func(cellId, expectedColor int) {
-		// Check if the cell color is the same as the expected one.
-		color := board.cells[cellId]
-		if color == expectedColor {
-			// Check if the cell has not been already processed.
-			_, alreadyProcessed := processedCells[cellId]
-			if !alreadyProcessed {
-				// The cell may already be present in the cellsToProcess map, but it's ok.
-				// We save a look-up in the map by not testing the presence of the key prior to adding it.
-				cellsToProcess[cellId] = void{}
-			}
+	// Get the list of colors in the frontier ordered by descending area size.
+	colors := board.getColorsInFrontier()
+
+	// Try all the colors in the frontier.
+	resultColor := -1
+	var resultBoard *Board = nil
+
+	for _, color := range colors {
+		// Clone and update the board.
+		boardCopy := board.clone()
+		boardCopy.playStep(color)
+
+		// Continue the evaluation.
+		_, bestBoard := doPickColorWithLargestAreaDeep(boardCopy, depth-1)
+
+		// Check if we improved the local best solution.
+		if resultBoard == nil || len(bestBoard.completedCells) > len(resultBoard.completedCells) {
+			resultColor = color
+			resultBoard = bestBoard
 		}
 	}
 
-	// Loop over the set of cells to process until it's empty.
-	for {
-		// Iterate over the cells to process.
-		for cellId := range cellsToProcess {
-			// Remove it from the cells to process.
-			delete(cellsToProcess, cellId)
-			processedCells[cellId] = void{}
-
-			// Add it to the area corresponding to its color.
-			color := board.cells[cellId]
-			area := areasByColor[color]
-			if area == nil {
-				// Lazy initialization of the area set for this color.
-				area = make(map[int]void)
-				areasByColor[color] = area
-			}
-			area[cellId] = void{}
-
-			// Check if the top, bottom, left and right adjacent cells are of the same color.
-			row := cellId / board.nbCols
-			col := cellId % board.nbCols
-
-			// Top
-			if row > 0 {
-				processCell(cellId-board.nbCols, color)
-			}
-
-			// Bottom
-			if row < (board.nbRows - 1) {
-				processCell(cellId+board.nbCols, color)
-			}
-
-			// Left
-			if col > 0 {
-				processCell(cellId-1, color)
-			}
-
-			// Right
-			if col < (board.nbCols - 1) {
-				processCell(cellId+1, color)
-			}
-		}
-
-		if len(cellsToProcess) == 0 {
-			// No more cell to process, we are done.
-			break
-		}
-	}
-
-	// Iterate over the frontier colors and keep the one with the largest area (i.e. the greater cell count).
-	largestAreaSize, largestAreaColor := -1, -1
-	for color, area := range areasByColor {
-		areaSize := len(area)
-		if largestAreaSize == -1 || areaSize > largestAreaSize {
-			largestAreaSize = areaSize
-			largestAreaColor = color
-		}
-	}
-
-	return largestAreaColor
+	return resultColor, resultBoard
 }
