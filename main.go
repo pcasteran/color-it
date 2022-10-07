@@ -91,5 +91,15 @@ mainLoop:
 
 	// Print the best solution found.
 	log.Info().Int("nb-steps", len(bestSolution)).Ints("solution", bestSolution).Msg("best solution")
-	fmt.Println(bestSolution)
+	for _, color := range bestSolution {
+		fmt.Println(color)
+	}
+
+	// Generate the output file.
+	err = writeOutputFile("out.csv", bestSolution)
+	if err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("unable to write the solution to the output file")
+	}
 }
