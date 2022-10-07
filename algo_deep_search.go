@@ -158,16 +158,13 @@ func evaluateBoard(board *Board, steps []int, ctx *DeepSearchContext) []int {
 		}
 	}
 
-	// Get the set of available colors in the frontier.
-	colors := make(map[int]void)
-	for cellId := range board.frontierCells {
-		color := board.cells[cellId]
-		colors[color] = void{}
-	}
+	// Get the list of colors in the frontier ordered by descending area size.
+	// Return the first one (guaranteed to exist as the board is not solved).
+	colors := board.getColorsInFrontier()
 
 	// Try all the colors in the frontier and continue the evaluation.
 	var localBestSolution []int = nil
-	for color := range colors {
+	for _, color := range colors {
 		// Clone and update the board.
 		boardCopy := board.clone()
 		boardCopy.playStep(color)
