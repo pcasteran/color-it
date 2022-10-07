@@ -15,6 +15,7 @@ func deepSearch(board *Board, solutions chan []int, done chan void, debug bool) 
 
 	// Evaluate the board and return the best steps solution.
 	ctx := &DeepSearchContext{
+		debug:                 debug,
 		bestSolutionStepCount: initialSolutionStepCount,
 		processedCache:        make(map[string]*DeepSearchCacheEntry),
 		solutions:             solutions,
@@ -200,6 +201,7 @@ type DeepSearchCacheEntry struct {
 }
 
 type DeepSearchContext struct {
+	debug                 bool
 	bestSolutionStepCount int
 	processedCache        map[string]*DeepSearchCacheEntry
 	solutions             chan []int
@@ -214,18 +216,21 @@ type DeepSearchContext struct {
 }
 
 func (ctx *DeepSearchContext) printStats(finished bool) {
-	msg := "progress"
-	if finished {
-		msg = "finished"
-	}
+	if ctx.debug {
+		msg := "progress"
+		if finished {
+			msg = "finished"
+		}
 
-	log.Debug().
-		Int("best", ctx.bestSolutionStepCount).
-		Int("evaluation", ctx.evaluationCounter).
-		Int("solved", ctx.solvedCounter).
-		Int("pruned", ctx.prunedCounter).
-		Int("cache-hit", ctx.cacheHitCounter).
-		Int("cache-improvement", ctx.cacheImprovedCounter).
-		Int("cache-merge", ctx.cacheMergedCounter).
-		Msg(msg)
+		log.Debug().
+			Int("best", ctx.bestSolutionStepCount).
+			Int("evaluation", ctx.evaluationCounter).
+			Int("solved", ctx.solvedCounter).
+			Int("pruned", ctx.prunedCounter).
+			Int("cache-size", len(ctx.processedCache)).
+			Int("cache-hit", ctx.cacheHitCounter).
+			Int("cache-improvement", ctx.cacheImprovedCounter).
+			Int("cache-merge", ctx.cacheMergedCounter).
+			Msg(msg)
+	}
 }
