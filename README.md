@@ -26,19 +26,23 @@ Implementation for the ["color-it"](https://www.sfeir.com/fr/battle-algo/) conte
 ## Profiling
 
 Use go test benchmark feature to generate the profiling files:
+
 ```bash
 go test -cpuprofile cpu.prof -memprofile mem.prof -bench .
 ```
 
 Use the [pprof](https://github.com/google/pprof) tool to visualize the profiling results with pprof:
+
 ```bash
 go tool pprof -http=":" cpu.prof
 ```
 
 ## TODO
 
-[ ] Parallel deep search implementation using multiple Goroutines
-[ ] Try new implementations:
-      - start from the initial solution (of length L)
-      - start from level L-2 and check if the other colors to see if there is a better solution
-      - go upward until reaching the tree root
+Parallelize the deep search implementation using multiple Goroutines.
+
+Try new implementation:
+
+1. start from the initial solution (of length L)
+1. start from level L-2 and check if the other colors to see if there is a better solution
+1. go upward until reaching the tree root
