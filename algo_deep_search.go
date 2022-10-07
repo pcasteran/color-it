@@ -11,7 +11,7 @@ import (
 func deepSearch(board *Board, solutions chan []int, done chan void, debug bool) ([]int, error) {
 	// First compute a "good" solution to have an initial step count that will be used to prune the graph search.
 	// It's very probably not the optimal solution, but it's fast to compute.
-	initialSolutionStepCount := computeInitialSolutionStepCount(board, solutions, debug)
+	initialSolutionStepCount := computeInitialSolutionStepCount(board, solutions)
 
 	// Evaluate the board and return the best steps solution.
 	ctx := &DeepSearchContext{
@@ -34,7 +34,7 @@ func deepSearch(board *Board, solutions chan []int, done chan void, debug bool) 
 }
 
 // Compute an initial solution using a fast but not optimal implementation and return the best step count found.
-func computeInitialSolutionStepCount(board *Board, solutions chan []int, debug bool) int {
+func computeInitialSolutionStepCount(board *Board, solutions chan []int) int {
 	// The fast implementation has some random parts (map iteration order). Thus, we launch multiple instances
 	// in parallel and return the best one.
 	var waitGroup sync.WaitGroup
@@ -47,7 +47,7 @@ func computeInitialSolutionStepCount(board *Board, solutions chan []int, debug b
 			defer waitGroup.Done()
 
 			// Call the fast implementation.
-			solution, err := maximizeStepArea(board.clone(), solutions, nil, debug)
+			solution, err := maximizeStepAreaDeep(board.clone(), solutions, nil, false)
 			if err != nil {
 				// No solution found, this is unfortunate but not blocking.
 				log.Warn().Err(err).Int("id", id).Msg("unable to compute the initial solution")

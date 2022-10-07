@@ -11,7 +11,7 @@ import (
 func deepSearchParallel(board *Board, solutions chan []int, done chan void, debug bool) ([]int, error) {
 	// First compute a "good" solution to have an initial step count that will be used to prune the graph search.
 	// It's very probably not the optimal solution, but it's fast to compute.
-	initialSolutionStepCount := computeInitialSolutionStepCount(board, solutions, debug)
+	initialSolutionStepCount := computeInitialSolutionStepCount(board, solutions)
 
 	// Evaluate the board.
 	ctx := NewDeepSearchParallelContext(int64(initialSolutionStepCount), solutions)
