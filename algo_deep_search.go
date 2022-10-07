@@ -94,7 +94,19 @@ func evaluateBoard(board *Board, steps []int, ctx *DeepSearchContext) []int {
 			// Push the new solution to the channel.
 			ctx.solutions <- steps
 
-			// TODO: clear cache with count >= currentStepCount ?
+			// Clear the cache entries with step count greater than the new solution.
+			deletedCount := 0
+			for id, entry := range ctx.processedCache {
+				if entry.stepCount >= currentStepCount {
+					delete(ctx.processedCache, id)
+					deletedCount++
+				}
+			}
+
+			log.Debug().
+				Int("deleted", deletedCount).
+				Int("new-size", len(ctx.processedCache)).
+				Msg("cache cleaned")
 		}
 
 		return steps
