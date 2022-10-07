@@ -28,7 +28,9 @@ func deepSearch(board *Board, solutions chan []int, done chan void, debug bool) 
 	evaluateBoard(board, []int{}, ctx)
 
 	// Notify that the execution is finished.
-	done <- void{}
+	if done != nil {
+		done <- void{}
+	}
 
 	return nil, nil
 }
