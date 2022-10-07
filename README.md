@@ -2,6 +2,31 @@
 
 Implementation for the ["color-it"](https://www.sfeir.com/fr/battle-algo/) contest.
 
+## Building
+
+### Build the binary using the Go SDK (preferred)
+
+```bash
+# Install the application dependencies.
+go mod download
+
+# Build the application.
+go build
+
+# Test it.
+time ./color-it samples/30_30_3-1.csv
+```
+
+### Build a Docker image
+
+```bash
+# Build the Docker image
+docker build -r color-it .
+
+# Test it.
+time docker run --rm -v $(pwd)/samples/30_30_3-1.csv:/data/input.csv color-it /data/input.csv
+```
+
 ## Results
 
 | Sample        | Deep search                                                                            |
