@@ -23,6 +23,7 @@ func main() {
 	impl := flag.String("impl", "deep-search", "Name of the algorithm implementation to execute")
 	checkSquare := flag.Bool("check-square", true, "Check whether the board is a square after loading it")
 	timeoutSec := flag.Int("timeout", 115, "Timeout in seconds of the execution")
+	outputFile := flag.String("output", "", "File path in which to write the solution found")
 	flag.Parse()
 
 	inputFile := flag.Arg(0)
@@ -96,10 +97,12 @@ mainLoop:
 	}
 
 	// Generate the output file.
-	err = writeOutputFile("out.csv", bestSolution)
-	if err != nil {
-		log.Fatal().
-			Err(err).
-			Msg("unable to write the solution to the output file")
+	if *outputFile != "" {
+		err = writeOutputFile(*outputFile, bestSolution)
+		if err != nil {
+			log.Fatal().
+				Err(err).
+				Msg("unable to write the solution to the output file")
+		}
 	}
 }

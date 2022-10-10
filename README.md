@@ -48,6 +48,8 @@ Usage of ./color-it:
         Enable the debug logs
   -impl string
         Name of the algorithm implementation to execute (default "deep-search")
+  -output string
+        File path in which to write the solution found
   -timeout int
         Timeout in seconds of the execution (default 115)
 ```
@@ -61,8 +63,6 @@ The best solution found is printed on stdout, one step per line at the end of th
 0
 2
 ```
-
-The file `out.csv` is also created at the end of the program execution and contains the solution (same format).
 
 ## Results
 
