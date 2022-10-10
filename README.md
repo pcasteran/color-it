@@ -24,13 +24,8 @@ go build
 docker build -t color-it .
 
 # Test it.
-mkdir -p output
-chmod 777 output
-
 docker run --rm \
   -v $(pwd)/samples/30_30_3-1.csv:/data/input.csv \
-  -v $(pwd)/output:/tmp/color-it \
-  -w /tmp/color-it \
   color-it /data/input.csv
 ```
 
