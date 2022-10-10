@@ -24,13 +24,8 @@ go build
 docker build -t color-it .
 
 # Test it.
-mkdir -p output
-chmod 777 output
-
 docker run --rm \
   -v $(pwd)/samples/30_30_3-1.csv:/data/input.csv \
-  -v $(pwd)/output:/tmp/color-it \
-  -w /tmp/color-it \
   color-it /data/input.csv
 ```
 
@@ -48,6 +43,8 @@ Usage of ./color-it:
         Enable the debug logs
   -impl string
         Name of the algorithm implementation to execute (default "deep-search")
+  -output string
+        File path in which to write the solution found
   -timeout int
         Timeout in seconds of the execution (default 115)
 ```
@@ -61,8 +58,6 @@ The best solution found is printed on stdout, one step per line at the end of th
 0
 2
 ```
-
-The file `out.csv` is also created at the end of the program execution and contains the solution (same format).
 
 ## Results
 
@@ -90,7 +85,7 @@ The file `out.csv` is also created at the end of the program execution and conta
 Use go test benchmark feature to generate the profiling files:
 
 ```bash
-go test -cpuprofile cpu.prof -memprofile mem.prof -bench .
+go test -cpuprofile cpu.prof -memprofile mem.prof -bench=. -benchtime=15s
 ```
 
 Use the [pprof](https://github.com/google/pprof) tool to visualize the profiling results with pprof:
