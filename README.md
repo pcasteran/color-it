@@ -90,7 +90,7 @@ The file `out.csv` is also created at the end of the program execution and conta
 Use go test benchmark feature to generate the profiling files:
 
 ```bash
-go test -cpuprofile cpu.prof -memprofile mem.prof -bench .
+go test -cpuprofile cpu.prof -memprofile mem.prof -bench=. -benchtime=15s
 ```
 
 Use the [pprof](https://github.com/google/pprof) tool to visualize the profiling results with pprof:
