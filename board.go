@@ -82,12 +82,13 @@ func (board *Board) clone() *Board {
 func (board *Board) getId() string {
 	// Create a string builder and add all the cells' color.
 	var builder strings.Builder
-	builder.Grow(board.nbRows * board.nbCols)
+	builder.Grow(board.nbRows * board.nbCols * 2)
 	for iRow := 0; iRow < board.nbRows; iRow++ {
 		for iCol := 0; iCol < board.nbCols; iCol++ {
 			cellId := (iRow * board.nbCols) + iCol
 			color := board.cells[cellId]
 			builder.WriteString(strconv.Itoa(color))
+			builder.WriteString(" ")
 		}
 	}
 	return builder.String()
